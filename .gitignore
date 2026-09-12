@@ -1,0 +1,14 @@
+# Data files
+*.csv
+*.npy
+*.parquet
+*.json
+*.zip
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pptx

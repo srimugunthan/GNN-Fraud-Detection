@@ -125,3 +125,6 @@ Without data, it runs in **demo mode** with synthetic data to validate the pipel
 4. **Ensemble with GBM**: Use GNN node embeddings as features for LightGBM/XGBoost
 5. **GAT attention**: Replace GraphSAGE with GAT to learn which neighbor connections matter most
 6. **Label propagation**: Semi-supervised pre-training step before GNN
+# visual demo
+
+https://claude.ai/code/artifact/3ad36618-4662-4bef-bf28-81986a71ac77?via=auto_preview

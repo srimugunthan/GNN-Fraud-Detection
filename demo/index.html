@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Fraud Ring Board</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f2ece0;
+    --surface:#fbf7ef;
+    --surface-2:#eee3c9;
+    --ink:#221d17;
+    --muted:#71675a;
+    --line:#ddceac;
+    --accent:#b3402a;
+    --accent-2:#1f6e68;
+    --good:#3f7a4a;
+    --warn:#a9781f;
+    --shadow: 0 1px 0 rgba(34,29,23,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#151009;
+      --surface:#1f1810;
+      --surface-2:#271e13;
+      --ink:#f0e6d3;
+      --muted:#a89a83;
+      --line:#3c2f20;
+      --accent:#e2603f;
+      --accent-2:#4fb6ac;
+      --good:#5cbf72;
+      --warn:#d3a13f;
+      --shadow: 0 1px 0 rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#151009;
+    --surface:#1f1810;
+    --surface-2:#271e13;
+    --ink:#f0e6d3;
+    --muted:#a89a83;
+    --line:#3c2f20;
+    --accent:#e2603f;
+    --accent-2:#4fb6ac;
+    --good:#5cbf72;
+    --warn:#d3a13f;
+    --shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+
+  *{ box-sizing:border-box; }
+  img{ max-width:100%; }
+  [hidden]{ display:none !important; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; text-wrap:balance; margin:0; }
+  code{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:.92em; background:var(--surface-2); padding:.1em .35em; border-radius:3px; }
+  a{ color:var(--accent-2); }
+  a:focus-visible, button:focus-visible{ outline:2px solid var(--accent-2); outline-offset:2px; }
+
+  .page{ max-width:920px; margin:0 auto; padding:3.5rem 1.5rem 4rem; display:flex; flex-direction:column; gap:3.25rem; }
+
+  /* ---- masthead ---- */
+  .masthead{ display:flex; flex-direction:column; gap:1.1rem; }
+  .stamp{
+    align-self:flex-start;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border:1.5px solid var(--accent);
+    padding:.3rem .6rem;
+    transform:rotate(-2deg);
+    border-radius:2px;
+  }
+  h1{ font-size:clamp(1.9rem, 1.4rem + 2vw, 2.7rem); font-weight:700; line-height:1.12; max-width:18ch; }
+  .lede{ max-width:62ch; font-size:1.05rem; line-height:1.6; color:var(--muted); }
+  .lede code{ font-size:.88em; }
+
+  /* ---- board section ---- */
+  .board-section{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:1.75rem;
+    display:flex;
+    flex-direction:column;
+    gap:1.5rem;
+    background-image:
+      radial-gradient(circle at 18px 18px, color-mix(in srgb, var(--ink) 5%, transparent) 1.4px, transparent 1.4px);
+    background-size:26px 26px;
+  }
+  .board-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:1rem; }
+  .run-btn{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.85rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    color:var(--surface);
+    background:var(--accent);
+    border:none;
+    border-radius:5px;
+    padding:.68rem 1.1rem;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease, background .2s ease, opacity .2s ease;
+    flex:none;
+  }
+  .run-btn:hover:not(:disabled){ transform:translateY(-1px); }
+  .run-btn:disabled{ opacity:.6; cursor:progress; }
+  .run-btn.is-done{ background:var(--accent-2); }
+  .status-line{
+    margin:0; font-size:.88rem; color:var(--muted); flex:1 1 260px; min-height:1.4em;
+  }
+
+  .panels{ display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+  @media (max-width:680px){ .panels{ grid-template-columns:1fr; } }
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .panel-head{ display:flex; align-items:baseline; gap:.55rem; padding:.9rem 1rem .6rem; border-bottom:1px solid var(--line); }
+  .panel-tag{ font-family:"IBM Plex Mono", monospace; font-size:.7rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .panel-head h2{ font-size:1.05rem; font-weight:600; }
+  .panel-sub{ font-family:"Public Sans", sans-serif; font-weight:400; font-size:.82rem; color:var(--muted); }
+  .panel-canvas{ display:block; width:100%; aspect-ratio:1000/580; background:var(--surface); }
+  .panel-canvas svg{ display:block; width:100%; height:100%; }
+
+  circle.node{ stroke:var(--surface); stroke-width:2; transition:fill .5s ease; }
+  circle.node.cleared{ fill:var(--good); }
+  circle.node.flagged{ fill:var(--accent); }
+  rect.hub{ fill:var(--surface); stroke:var(--muted); stroke-width:1.6; }
+  text.hub-label{ font-family:"IBM Plex Mono", monospace; font-size:14px; fill:var(--muted); }
+  line.spoke{ stroke:var(--muted); stroke-width:2; stroke-dasharray:4 5; opacity:.4; transition:stroke .5s ease, opacity .5s ease; }
+  line.spoke.active{ stroke:var(--accent-2); stroke-width:3; stroke-dasharray:none; opacity:.9; }
+  line.benign{ stroke:var(--muted); stroke-width:1.6; stroke-dasharray:3 5; opacity:.35; }
+  circle.pulse{ fill:var(--accent-2); opacity:0; }
+  svg.running circle.pulse{ animation:travel .8s ease-in forwards; }
+  @keyframes travel{
+    0%{ opacity:1; transform:translate(0,0); }
+    100%{ opacity:0; transform:translate(var(--dx), var(--dy)); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    svg.running circle.pulse{ animation:none; }
+    circle.node, line.spoke{ transition:none; }
+  }
+
+  .legend{ list-style:none; display:flex; flex-wrap:wrap; gap:1.1rem 1.6rem; margin:0; padding:0; font-size:.82rem; color:var(--muted); }
+  .legend li{ display:flex; align-items:center; gap:.45rem; }
+  .swatch{ width:13px; height:13px; border-radius:50%; flex:none; display:inline-block; }
+  .swatch.cleared{ background:var(--good); }
+  .swatch.flagged{ background:var(--accent); }
+  .swatch.edge-unused{ width:18px; height:0; border-top:2px dashed var(--muted); opacity:.5; border-radius:0; }
+  .swatch.edge-active{ width:18px; height:0; border-top:3px solid var(--accent-2); border-radius:0; }
+
+  /* ---- tally ---- */
+  .tally-section{ display:flex; flex-direction:column; gap:1.25rem; }
+  .tally-section h2{ font-size:1.5rem; font-weight:700; }
+  .scoreboards{ display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+  @media (max-width:680px){ .scoreboards{ grid-template-columns:1fr; } }
+  .score-card{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:1.25rem 1.4rem; display:flex; flex-direction:column; gap:.7rem; }
+  .score-card h3{ font-size:.95rem; font-weight:600; font-family:"Public Sans", sans-serif; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .score-big{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:.4rem; }
+  .score-big span:first-child{ font-size:2.3rem; font-weight:600; color:var(--ink); transition:color .3s ease; }
+  .score-big .of{ font-size:.85rem; color:var(--muted); }
+  .units{ display:flex; flex-wrap:wrap; gap:.32rem; }
+  .units span{ width:16px; height:16px; border-radius:3px; border:1.6px solid var(--warn); background:transparent; transition:background .35s ease, border-color .35s ease; }
+  .units span.caught{ background:var(--good); border-color:var(--good); }
+  .score-note{ margin:0; font-size:.82rem; color:var(--muted); }
+  #gnnCaught.updated{ color:var(--accent-2); }
+  .footnote{ font-size:.82rem; color:var(--muted); line-height:1.6; max-width:70ch; margin:0; }
+
+  /* ---- why ---- */
+  .why-section{ display:flex; flex-direction:column; gap:1.1rem; }
+  .why-section h2{ font-size:1.5rem; font-weight:700; }
+  .why-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.75rem; }
+  @media (max-width:680px){ .why-grid{ grid-template-columns:1fr; } }
+  .why-grid h3{ font-size:1.02rem; font-weight:600; margin-bottom:.4rem; font-family:"Public Sans", sans-serif; }
+  .why-grid p{ margin:0; font-size:.95rem; line-height:1.65; color:var(--muted); }
+
+  .page-footer{ font-size:.82rem; color:var(--muted); line-height:1.6; border-top:1px solid var(--line); padding-top:1.25rem; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <div class="stamp">Case walkthrough · illustrative</div>
+    <h1>Why the ring didn't show up on the balance sheet</h1>
+    <p class="lede">Twenty synthetic transactions below, ten of them fraudulent — eight funnelled through one shared device. Individually each of the eight looks unremarkable. This board compares what a tabular gradient-boosted model (the <code>LightGBM</code> baseline in this repo) sees against what its <code>GraphSAGE</code> model sees, using the same shared card / address / email / device edges the graph is built from.</p>
+  </header>
+
+  <section class="board-section" aria-label="Interactive comparison board">
+    <div class="board-toolbar">
+      <button id="runBtn" class="run-btn" type="button">Run message passing →</button>
+      <p id="statusLine" class="status-line">Panel B is scoring every node from its own features only — same as Panel A, for now.</p>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-tag">Panel A</span>
+          <h2>XGBoost <span class="panel-sub">· sees each row alone</span></h2>
+        </div>
+        <div class="panel-canvas" id="panelA"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-tag">Panel B</span>
+          <h2>GraphSAGE <span class="panel-sub">· sees the network</span></h2>
+        </div>
+        <div class="panel-canvas" id="panelB"></div>
+      </div>
+    </div>
+
+    <ul class="legend">
+      <li><span class="swatch cleared"></span>cleared — score &lt; 0.50</li>
+      <li><span class="swatch flagged"></span>flagged — score ≥ 0.50</li>
+      <li><span class="swatch edge-unused"></span>shared attribute, unused by this model</li>
+      <li><span class="swatch edge-active"></span>active signal, Panel B after Run</li>
+    </ul>
+  </section>
+
+  <section class="tally-section">
+    <h2>The tally</h2>
+    <div class="scoreboards">
+      <div class="score-card">
+        <h3>XGBoost — tabular lens</h3>
+        <div class="score-big"><span id="xgbCaught">2</span><span class="of">/ 10 fraud caught</span></div>
+        <div class="units" id="xgbUnits"></div>
+        <p class="score-note">0 false alarms on the 10 legitimate transactions</p>
+      </div>
+      <div class="score-card">
+        <h3>GraphSAGE — relationship lens</h3>
+        <div class="score-big"><span id="gnnCaught">2</span><span class="of">/ 10 fraud caught</span></div>
+        <div class="units" id="gnnUnits"></div>
+        <p class="score-note">0 false alarms on the 10 legitimate transactions</p>
+      </div>
+    </div>
+    <p class="footnote">Illustrative scenario, not a measured run — this repo's <code>results/</code> folder is currently empty. Per the README, the trained GraphSAGE model here validates at 0.92–0.95 AUC on held-out IEEE-CIS transactions; <code>notebooks/02_baseline_model.ipynb</code> trains a LightGBM baseline on the same split for direct comparison.</p>
+  </section>
+
+  <section class="why-section">
+    <h2>Why this happens</h2>
+    <div class="why-grid">
+      <div>
+        <h3>Row by row</h3>
+        <p>A tabular model scores each transaction on its own features — amount, hour, device type. A $34 charge at 2am on a burner card looks like a thousand other small legitimate charges. Nothing in that one row crosses the threshold, so it clears.</p>
+      </div>
+      <div>
+        <h3>Node by node</h3>
+        <p>The GNN treats the card, address, email domain and device fields as edges instead of features, exactly as this repo's graph construction does. Message passing lets each transaction borrow risk from its neighbors — eight quiet transactions plus one loud shared device add up to a network score that clears the fraud threshold together.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page-footer">Node layout mirrors the graph construction in <code>gnn_fraud_detection.py</code>: nodes are transactions, edges are shared card1–6 / addr1–2 / email domain / device fields, and groups sharing a value connect through a star topology once the group passes twenty members — as described in the README.</footer>
+
+</div>
+
+<script>
+(function(){
+  var W = 1000, H = 580;
+
+  // ---- data --------------------------------------------------------
+  var hub = { id:'hub', x:660, y:195, label:'DVC-771' };
+
+  var ring = [
+    { id:'r1', x:745, y:195, xgb:0.09, gnn:0.86 },
+    { id:'r2', x:720, y:135, xgb:0.14, gnn:0.81 },
+    { id:'r3', x:660, y:110, xgb:0.11, gnn:0.88 },
+    { id:'r4', x:600, y:135, xgb:0.19, gnn:0.79 },
+    { id:'r5', x:575, y:195, xgb:0.08, gnn:0.90 },
+    { id:'r6', x:600, y:255, xgb:0.16, gnn:0.83 },
+    { id:'r7', x:660, y:280, xgb:0.12, gnn:0.85 },
+    { id:'r8', x:720, y:255, xgb:0.21, gnn:0.80 }
+  ];
+
+  var outliers = [
+    { id:'o1', x:170, y:100, xgb:0.91, gnn:0.93 },
+    { id:'o2', x:860, y:430, xgb:0.87, gnn:0.89 }
+  ];
+
+  var normal = [
+    { id:'n1', x:110, y:300, xgb:0.05, gnn:0.05 },
+    { id:'n2', x:230, y:470, xgb:0.09, gnn:0.09 },
+    { id:'n3', x:360, y:80,  xgb:0.03, gnn:0.03 },
+    { id:'n4', x:430, y:300, xgb:0.07, gnn:0.07 },
+    { id:'n5', x:520, y:480, xgb:0.12, gnn:0.12 },
+    { id:'n6', x:300, y:210, xgb:0.06, gnn:0.06 },
+    { id:'n7', x:780, y:80,  xgb:0.04, gnn:0.04 },
+    { id:'n8', x:920, y:170, xgb:0.08, gnn:0.08 },
+    { id:'n9', x:800, y:300, xgb:0.05, gnn:0.05 },
+    { id:'n10', x:940, y:480, xgb:0.10, gnn:0.10 }
+  ];
+
+  var allTx = ring.concat(outliers, normal);
+
+  function svgns(tag){ return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+  // ---- build one panel ---------------------------------------------
+  function buildPanel(mount, opts){
+    var svg = svgns('svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', opts.ariaLabel);
+
+    var edgeLayer = svgns('g');
+    var pulseLayer = svgns('g');
+    var nodeLayer = svgns('g');
+    svg.appendChild(edgeLayer);
+    svg.appendChild(pulseLayer);
+    svg.appendChild(nodeLayer);
+
+    // benign edge between two ordinary nodes
+    var n4 = normal[3], n6 = normal[5];
+    var benign = svgns('line');
+    benign.setAttribute('class', 'benign');
+    benign.setAttribute('x1', n4.x); benign.setAttribute('y1', n4.y);
+    benign.setAttribute('x2', n6.x); benign.setAttribute('y2', n6.y);
+    edgeLayer.appendChild(benign);
+
+    // spokes hub -> ring
+    var spokes = [];
+    ring.forEach(function(r, i){
+      var line = svgns('line');
+      line.setAttribute('class', 'spoke');
+      line.setAttribute('data-id', r.id);
+      line.setAttribute('x1', hub.x); line.setAttribute('y1', hub.y);
+      line.setAttribute('x2', r.x);   line.setAttribute('y2', r.y);
+      edgeLayer.appendChild(line);
+      spokes.push(line);
+
+      if (opts.pulses){
+        var p = svgns('circle');
+        p.setAttribute('class', 'pulse');
+        p.setAttribute('cx', r.x); p.setAttribute('cy', r.y);
+        p.setAttribute('r', 6);
+        p.style.setProperty('--dx', (hub.x - r.x) + 'px');
+        p.style.setProperty('--dy', (hub.y - r.y) + 'px');
+        p.style.animationDelay = (i * 0.09) + 's';
+        pulseLayer.appendChild(p);
+      }
+    });
+
+    // hub icon
+    var hubRect = svgns('rect');
+    hubRect.setAttribute('class', 'hub');
+    hubRect.setAttribute('x', hub.x - 9); hubRect.setAttribute('y', hub.y - 9);
+    hubRect.setAttribute('width', 18); hubRect.setAttribute('height', 18);
+    hubRect.setAttribute('transform', 'rotate(45 ' + hub.x + ' ' + hub.y + ')');
+    var hubTitle = svgns('title'); hubTitle.textContent = 'Shared device fingerprint · ' + hub.label;
+    hubRect.appendChild(hubTitle);
+    edgeLayer.appendChild(hubRect);
+    var hubLabel = svgns('text');
+    hubLabel.setAttribute('class', 'hub-label');
+    hubLabel.setAttribute('x', hub.x + 16);
+    hubLabel.setAttribute('y', hub.y - 14);
+    hubLabel.textContent = hub.label;
+    nodeLayer.appendChild(hubLabel);
+
+    // transaction nodes
+    var nodeEls = {};
+    allTx.forEach(function(t){
+      var c = svgns('circle');
+      c.setAttribute('class', 'node ' + ((opts.score(t) >= 0.5) ? 'flagged' : 'cleared'));
+      c.setAttribute('data-id', t.id);
+      c.setAttribute('cx', t.x); c.setAttribute('cy', t.y);
+      c.setAttribute('r', 12);
+      var title = svgns('title');
+      title.textContent = t.id.toUpperCase() + ' · score ' + opts.score(t).toFixed(2);
+      c.appendChild(title);
+      nodeLayer.appendChild(c);
+      nodeEls[t.id] = c;
+    });
+
+    mount.appendChild(svg);
+    return { svg: svg, spokes: spokes, nodes: nodeEls };
+  }
+
+  var panelA = buildPanel(document.getElementById('panelA'), {
+    ariaLabel: 'XGBoost view: transactions scored independently, network edges shown but unused',
+    pulses: false,
+    score: function(t){ return t.xgb; }
+  });
+
+  var panelB = buildPanel(document.getElementById('panelB'), {
+    ariaLabel: 'GraphSAGE view: transactions scored with network message passing',
+    pulses: true,
+    score: function(t){ return t.xgb; }
+  });
+
+  // ---- scoreboard units ----------------------------------------------
+  function buildUnits(mount, caughtCount){
+    mount.innerHTML = '';
+    for (var i = 0; i < 10; i++){
+      var u = document.createElement('span');
+      if (i < caughtCount) u.className = 'caught';
+      mount.appendChild(u);
+    }
+  }
+  buildUnits(document.getElementById('xgbUnits'), 2);
+  buildUnits(document.getElementById('gnnUnits'), 2);
+
+  // ---- run / replay interaction --------------------------------------
+  var runBtn = document.getElementById('runBtn');
+  var statusLine = document.getElementById('statusLine');
+  var gnnCaughtEl = document.getElementById('gnnCaught');
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var state = 'idle'; // idle -> running -> revealed
+
+  function reveal(){
+    ring.forEach(function(r){
+      panelB.nodes[r.id].setAttribute('class', 'node flagged');
+    });
+    panelB.spokes.forEach(function(s){ s.classList.add('active'); });
+    gnnCaughtEl.textContent = '10';
+    gnnCaughtEl.classList.add('updated');
+    buildUnits(document.getElementById('gnnUnits'), 10);
+    statusLine.textContent = 'Eight pulses converged on DVC-771. Every transaction that shares it just got flagged.';
+    runBtn.textContent = 'Replay ↺';
+    runBtn.disabled = false;
+    runBtn.classList.add('is-done');
+    state = 'revealed';
+  }
+
+  function resetPanelB(){
+    ring.forEach(function(r){
+      panelB.nodes[r.id].setAttribute('class', 'node cleared');
+    });
+    panelB.spokes.forEach(function(s){ s.classList.remove('active'); });
+    gnnCaughtEl.textContent = '2';
+    gnnCaughtEl.classList.remove('updated');
+    buildUnits(document.getElementById('gnnUnits'), 2);
+    statusLine.textContent = 'Panel B is scoring every node from its own features only — same as Panel A, for now.';
+    runBtn.textContent = 'Run message passing →';
+    runBtn.classList.remove('is-done');
+    panelB.svg.classList.remove('running');
+    state = 'idle';
+  }
+
+  function run(){
+    state = 'running';
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running…';
+    statusLine.textContent = 'Tracing the shared-device edges out from each of the eight ring transactions…';
+
+    if (reduced){
+      setTimeout(reveal, 300);
+      return;
+    }
+    // restart CSS animation on the pulse elements
+    panelB.svg.classList.remove('running');
+    void panelB.svg.offsetWidth;
+    panelB.svg.classList.add('running');
+    setTimeout(reveal, 900 + ring.length * 90 + 150);
+  }
+
+  runBtn.addEventListener('click', function(){
+    if (state === 'idle') run();
+    else if (state === 'revealed') resetPanelB();
+  });
+})();
+</script>
+</body>
+</html>
