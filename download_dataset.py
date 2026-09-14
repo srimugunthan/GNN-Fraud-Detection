@@ -6,6 +6,7 @@ Dataset Downloader — IEEE-CIS Fraud Detection (Kaggle)
 Downloads the raw competition archive (ieee-fraud-detection.zip) from Kaggle
 into DATA_DIR, using the Kaggle CLI under the hood.
 
+export KAGGLE_API_TOKEN=
 One-time setup:
     1. pip install kaggle
     2. Get an API token: https://www.kaggle.com/settings -> "Create New Token"
