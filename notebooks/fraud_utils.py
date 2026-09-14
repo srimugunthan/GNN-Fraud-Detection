@@ -59,7 +59,7 @@ def reduce_memory_usage(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
     start_mem = df.memory_usage(deep=True).sum() / 1024 ** 2
     for col in df.columns:
         col_type = df[col].dtype
-        if col_type == object:
+        if not pd.api.types.is_numeric_dtype(col_type):
             continue
         c_min, c_max = df[col].min(), df[col].max()
         if pd.isna(c_min) or pd.isna(c_max):
