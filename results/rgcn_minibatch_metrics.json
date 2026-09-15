@@ -1,0 +1,20 @@
+{
+  "model": "RGCN (mini-batch)",
+  "auc": 0.7287403324628539,
+  "pr_auc": 0.09396112976726631,
+  "n_train": 472432,
+  "n_valid": 118108,
+  "n_features": 117,
+  "n_relations": 12,
+  "hidden_dim": 128,
+  "num_layers": 3,
+  "num_bases": 6,
+  "num_neighbors": [
+    15,
+    10,
+    5
+  ],
+  "batch_size": 2048,
+  "num_epochs_trained": 60,
+  "median_epoch_sec": 11.292372465133667
+}

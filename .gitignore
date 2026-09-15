@@ -11,6 +11,6 @@ ieee-cis-dataset/
 __pycache__/
 *.pyc
 *.pptx
-
+.ipynb_checkpoints/
 # Environment
 .env
