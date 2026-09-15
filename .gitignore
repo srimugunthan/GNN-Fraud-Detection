@@ -2,9 +2,8 @@
 *.csv
 *.npy
 *.parquet
-*.json
 *.zip
-
+ieee-cis-dataset/
 # macOS
 .DS_Store
 

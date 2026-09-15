@@ -1,0 +1,8 @@
+{
+  "model": "LogisticRegression",
+  "auc": 0.8052094895270426,
+  "pr_auc": 0.21255374095302054,
+  "n_train": 472432,
+  "n_valid": 118108,
+  "n_features": 50
+}

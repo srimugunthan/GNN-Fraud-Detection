@@ -1,0 +1,8 @@
+{
+  "model": "HistGradientBoosting",
+  "auc": 0.9123375594586782,
+  "pr_auc": 0.48775719866428713,
+  "n_train": 472432,
+  "n_valid": 118108,
+  "n_features": 50
+}
